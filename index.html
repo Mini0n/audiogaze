@@ -158,9 +158,9 @@
     ctx.clearRect(0, 0, cw, ch);
     var n = ~~(analizer.frequencyBinCount / bNum);
     for (var i = 0; i = points.length; i++) {
-      point[i].h = -dataArray[i * n]; // altura negativa!!
+      points[i].h = -dataArray[i * n]; // altura negativa!!
       ctx.beginPath();
-      ctx.fillRect(point[i].x, point[i].y, point[i].w - 1, point[i].h);
+      ctx.fillRect(points[i].x, points[i].y, points[i].w - 1, points[i].h);
     }
   }
 
