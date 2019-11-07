@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+  html,
+  body {
+    height: 95%;
+    background: #1d1f20;
+  }
+
+  #boton,
+  canvas {
+    margin: 1em auto;
+    display: block;
+  }
+
+  canvas {
+    position: absolute;
+    bottom: 0px;
+  }
+
+  button {
+    background-color: #6f20a1;
+    border: 1em solid #6f20a1;
+    padding: 5px;
+    font-size: 15px;
+    width: 100px;
+  }
+
+  canvas {
+    border: 0px solid #bbb;
+  }
+</style>
+
+<body>
+
+  <div>
+    <button id="boton" type="button">play</button>
+  </div>
+
+  <canvas></canvas>
+
+</body>
+
+
+<script>
+
+  var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  var wildFire = './shallow_command.mp3'
+
+  var analizador = audioCtx.createAnalyser();
+  analizador.fftSize = 1024; // [32, 64, 128, 256, 512, 1024, 2048]
+  var dataArray = new Uint8Array(analizador.frequencyBinCount);
+
+  var audioBuffer, fuenteDeReproduccion;
+  var start = false;
+  var stop = true;
+  var time = 0;
+
+  function solicitarAudio(url) {
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+    request.onload = function () {
+      audioCtx.decodeAudioData(request.response, function (buffer) {
+        audioBuffer = buffer;
+      });
+    };
+
+    request.send();
+  }
+
+  function reproducirAudio() {
+    fuenteDeReproduccion = audioCtx.createBufferSource();
+    fuenteDeReproduccion.buffer = audioBuffer;
+    fuenteDeReproduccion.connect(analizador);
+    analizador.connect(audioCtx.destination);
+    fuenteDeReproduccion.start(audioCtx.currentTime);
+  }
+
+  function detenerAudio() {
+    fuenteDeReproduccion.stop();
+  }
+
+  function audio() {
+    if (stop) {
+      time = audioCtx.currentTime;
+      start = true;
+      stop = false;
+      boton.innerHTML = "||";
+      reproducirAudio();
+    } else {
+      stop = true;
+      start = false;
+      boton.innerHTML = "&#9655;";
+      detenerAudio();
+    }
+  }
+
+  solicitarAudio(
+    wildFire
+  );
+
+  boton.addEventListener("click", audio, false);
+
+  window.setInterval(function () {
+    if (audioBuffer && audioCtx.currentTime - time >= audioBuffer.duration) {
+      stop = true;
+      boton.innerHTML = "&#9655;";
+    }
+  }, 1000);
+
+  var canvas = document.querySelector("canvas");
+  ctx = canvas.getContext("2d");
+  var cw = (canvas.width = window.innerWidth * 0.9);
+  var ch = (canvas.height = 255);
+
+  var grd = ctx.createLinearGradient(0, 0, 0, 255);
+  grd.addColorStop(0, "rgba(239, 5, 255, 1)");
+  grd.addColorStop(0.7, "rgba(111, 32, 161, 0.8)");
+
+  //ctx.fillStyle = "#6f20a1";
+  ctx.fillStyle = grd;
+
+  var barras = [];
+  var bNum = 300;
+
+  for (var i = 0; i < bNum; i++) {
+    var barra = {};
+    barra.w = cw / bNum;
+    barra.h = 0;
+    barra.x = i * barra.w;
+    barra.y = ch;
+    barras.push(barra);
+  }
+
+  function Fotograma() {
+    requestId = window.requestAnimationFrame(Fotograma);
+    analizador.getByteFrequencyData(dataArray);
+    ctx.clearRect(0, 0, cw, ch);
+    var n = ~~(analizador.frequencyBinCount / bNum);
+    for (var i = 0; i < barras.length; i++) {
+      barras[i].h = -dataArray[i * n]; // altura negativa!!
+      ctx.beginPath();
+      ctx.fillRect(barras[i].x, barras[i].y, barras[i].w - 1, barras[i].h);
+    }
+  }
+
+  Fotograma();
+
+
+  function findAudioSources() {
+    let prevMediaElementsLength = mediaElements.length;
+    let audioElements = document.getElementsByTagName("audio");
+    let videoElements = document.getElementsByTagName("video");
+    let foundMediaElements = [...audioElements, ...videoElements];
+    for (let i = 0; i < foundMediaElements.length; i++) {
+      if (foundMediaElements[i].id == null || foundMediaElements[i].id == "") {
+        foundMediaElements[i].id = "mediaElement" + mediaElements.length;
+
+        let audioCtx = new AudioContext();
+        let analyser = audioCtx.createAnalyser();
+        analyser.smoothingTimeConstant = .6;
+        let source = audioCtx.createMediaElementSource(foundMediaElements[i]);
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        analyser.fftSize = websiteConfig.fftUni;
+        let frequencyData = new Uint8Array(analyser.frequencyBinCount);
+        let bufferLength = analyser.frequencyBinCount;
+        let dataArray = new Uint8Array(bufferLength);
+
+        mediaElements[mediaElements.length] = {
+          node: foundMediaElements[i],
+          attached: true,
+          audioCtx,
+          analyser,
+          frequencyData,
+          bufferLength,
+          dataArray,
+        };
+      }
+    }
+  }
+
+</script>
+
+
+</html>
