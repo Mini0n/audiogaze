@@ -166,40 +166,6 @@
 
   display();
 
-
-  function findAudioSources() {
-    let prevMediaElementsLength = mediaElements.length;
-    let audioElements = document.getElementsByTagName("audio");
-    let videoElements = document.getElementsByTagName("video");
-    let foundMediaElements = [...audioElements, ...videoElements];
-    for (let i = 0; i < foundMediaElements.length; i++) {
-      if (foundMediaElements[i].id == null || foundMediaElements[i].id == "") {
-        foundMediaElements[i].id = "mediaElement" + mediaElements.length;
-
-        let audioCtx = new AudioContext();
-        let analyser = audioCtx.createAnalyser();
-        analyser.smoothingTimeConstant = .6;
-        let source = audioCtx.createMediaElementSource(foundMediaElements[i]);
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
-        analyser.fftSize = websiteConfig.fftUni;
-        let frequencyData = new Uint8Array(analyser.frequencyBinCount);
-        let bufferLength = analyser.frequencyBinCount;
-        let dataArray = new Uint8Array(bufferLength);
-
-        mediaElements[mediaElements.length] = {
-          node: foundMediaElements[i],
-          attached: true,
-          audioCtx,
-          analyser,
-          frequencyData,
-          bufferLength,
-          dataArray,
-        };
-      }
-    }
-  }
-
 </script>
 
 
