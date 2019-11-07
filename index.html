@@ -5,19 +5,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Document</title>
+  <title>Shallow - Missile Command</title>
 
   <style>
     html,
     body {
       height: 95%;
       background: #1d1f20;
+      margin: 0;
     }
-
-    /* canvas {
-
-      display: block;
-    } */
 
     button {
       background-color: #6f20a1;
@@ -28,20 +24,29 @@
       display: none;
     }
 
-    #canvas-div {
+    label {
+      color: #eeeeee;
+      margin: 0 auto;
+      font-size: 15px;
+      width: 100px;
+      display: none;
+    }
+
+    #canvasDiv {
       width: 100%;
       height: 100%;
       margin: 0 auto;
-      position: fixed;
+      /* position: fixed; */
     }
 
     canvas {
       width: 100%;
       height: 100%;
+      position: fixed;
     }
 
     #main {
-      margin: 1em auto;
+      margin: 10px auto 0 0;
       width: 100%;
       height: 100%;
     }
@@ -50,7 +55,8 @@
 
 <body>
   <div id="main">
-    <div id='canvas-div'>
+    <div id='canvasDiv'>
+      <label id="loadingLabel" for="">l o a d i n g ....</label>
       <button id="playButton" type="button">🛸</button>
       <canvas></canvas>
     </div>
@@ -89,15 +95,18 @@
   }
 
   function getAudio(url) {
+    console.log('getting audio...');
+    loadingLabel.style.display = 'block';
     createAudioContext();
     var request = new XMLHttpRequest();
     request.open("GET", url, true);
     request.responseType = "arraybuffer";
     request.onload = function () {
+      console.log('loading...');
       audioCtx.decodeAudioData(request.response, function (buffer) {
         audioBuffer = buffer;
       });
-      playButton.style.display = 'block';
+      prepareButton();
     };
     request.send();
   }
@@ -134,12 +143,20 @@
 
   playButton.addEventListener("click", shoegazing, false);
 
-  window.setInterval(function () {
-    if (audioBuffer && audioCtx.currentTime - time >= audioBuffer.duration) {
-      stop = true;
-      playButton.innerHTML = "🛸";
-    }
-  }, 1000);
+  function prepareButton() {
+    check = setInterval(function () {
+      if (audioBuffer) {
+        stop = true;
+        playButton.innerHTML = "🛸";
+        console.log('ready <3');
+        console.log(audioBuffer);
+        loadingLabel.style.display = 'none';
+        playButton.style.display = 'block';
+        clearInterval(check);
+      }
+    }, 500);
+  }
+
 
   var canvas = document.querySelector("canvas");
   ctx = canvas.getContext("2d");
@@ -173,7 +190,6 @@
       points[i].h = -dataArray[i * n]; // altura negativa!!
       ctx.beginPath();
       ctx.fillRect(points[i].x, points[i].y, points[i].w - 1, points[i].h);
-      ctx.arc(points[i].x, points[i].y, points[i].w - 1, points[i].h);
     }
   }
 
