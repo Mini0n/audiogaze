@@ -66,8 +66,8 @@
   var cmd_exe = './shallow_command.mp3'
   var analizer = audioCtx.createAnalyser();
 
-  anaizer.fftSize = 1024; // [32, 64, 128, 256, 512, 1024, 2048]
-  var dataArray = new Uint8Array(anaizer.frequencyBinCount);
+  analizer.fftSize = 1024; // [32, 64, 128, 256, 512, 1024, 2048]
+  var dataArray = new Uint8Array(analizer.frequencyBinCount);
 
   var audioBuffer, audioContext;
   var start = false;
@@ -90,8 +90,8 @@
   function readAudio() {
     audioContext = audioCtx.createBufferSource();
     audioContext.buffer = audioBuffer;
-    audioContext.connect(anaizer);
-    anaizer.connect(audioCtx.destination);
+    audioContext.connect(analizer);
+    analizer.connect(audioCtx.destination);
     audioContext.start(audioCtx.currentTime);
   }
 
@@ -154,9 +154,9 @@
 
   function display() {
     requestId = window.requestAnimationFrame(display);
-    anaizer.getByteFrequencyData(dataArray);
+    analizer.getByteFrequencyData(dataArray);
     ctx.clearRect(0, 0, cw, ch);
-    var n = ~~(anaizer.frequencyBinCount / bNum);
+    var n = ~~(analizer.frequencyBinCount / bNum);
     for (var i = 0; i = points.length; i++) {
       points[i].h = -dataArray[i * n]; // altura negativa!!
       ctx.beginPath();
