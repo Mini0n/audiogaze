@@ -55,20 +55,27 @@
 
 <script>
 
+  /* ---------------------------------------------------------------------
+
+  > https://developer.mozilla.org/en-US/docs/Web/API/AudioContext
+  > https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createAnalyser
+
+  ------------------------------------------------------------------------*/
+
   var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  var cmd_exe = './shallow_command.mp3'
+  var analizer = audioCtx.createAnalyser();
 
-  var wildFire = './shallow_command.mp3'
+  anaizer.fftSize = 1024; // [32, 64, 128, 256, 512, 1024, 2048]
+  var dataArray = new Uint8Array(anaizer.frequencyBinCount);
 
-  var analizador = audioCtx.createAnalyser();
-  analizador.fftSize = 1024; // [32, 64, 128, 256, 512, 1024, 2048]
-  var dataArray = new Uint8Array(analizador.frequencyBinCount);
-
-  var audioBuffer, fuenteDeReproduccion;
+  var audioBuffer, audioContext;
   var start = false;
+  var pause = true;
   var stop = true;
   var time = 0;
 
-  function solicitarAudio(url) {
+  function readAudio(url) {
     var request = new XMLHttpRequest();
     request.open("GET", url, true);
     request.responseType = "arraybuffer";
@@ -77,39 +84,38 @@
         audioBuffer = buffer;
       });
     };
-
     request.send();
   }
 
-  function reproducirAudio() {
-    fuenteDeReproduccion = audioCtx.createBufferSource();
-    fuenteDeReproduccion.buffer = audioBuffer;
-    fuenteDeReproduccion.connect(analizador);
-    analizador.connect(audioCtx.destination);
-    fuenteDeReproduccion.start(audioCtx.currentTime);
+  function readAudio() {
+    audioContext = audioCtx.createBufferSource();
+    audioContext.buffer = audioBuffer;
+    audioContext.connect(anaizer);
+    anaizer.connect(audioCtx.destination);
+    audioContext.start(audioCtx.currentTime);
   }
 
-  function detenerAudio() {
-    fuenteDeReproduccion.stop();
+  function stopAudio() {
+    audioContext.stop();
   }
 
   function audio() {
     if (stop) {
-      time = audioCtx.currentTime;
+      time = audioCtx.suspend();
       start = true;
       stop = false;
       boton.innerHTML = "||";
-      reproducirAudio();
+      readAudio();
     } else {
       stop = true;
       start = false;
       boton.innerHTML = "&#9655;";
-      // detenerAudio();
+      // stopAudio();
     }
   }
 
-  solicitarAudio(
-    wildFire
+  readAudio(
+    cmd_exe
   );
 
   boton.addEventListener("click", audio, false);
@@ -123,6 +129,7 @@
 
   var canvas = document.querySelector("canvas");
   ctx = canvas.getContext("2d");
+
   var cw = (canvas.width = window.innerWidth * 0.9);
   var ch = (canvas.height = 255);
 
@@ -133,31 +140,31 @@
   //ctx.fillStyle = "#6f20a1";
   ctx.fillStyle = grd;
 
-  var barras = [];
+  var points = [];
   var bNum = 300;
 
   for (var i = 0; i < bNum; i++) {
-    var barra = {};
-    barra.w = cw / bNum;
-    barra.h = 0;
-    barra.x = i * barra.w;
-    barra.y = ch;
-    barras.push(barra);
+    var point = {};
+    point.w = cw / bNum;
+    point.h = 0;
+    point.x = i * point.w;
+    point.y = ch;
+    r points.push(point);
   }
 
-  function Fotograma() {
-    requestId = window.requestAnimationFrame(Fotograma);
-    analizador.getByteFrequencyData(dataArray);
+  function display() {
+    requestId = window.requestAnimationFrame(display);
+    anaizer.getByteFrequencyData(dataArray);
     ctx.clearRect(0, 0, cw, ch);
-    var n = ~~(analizador.frequencyBinCount / bNum);
-    for (var i = 0; i < barras.length; i++) {
-      barras[i].h = -dataArray[i * n]; // altura negativa!!
+    var n = ~~(anaizer.frequencyBinCount / bNum);
+    for (var i = 0; i r points.length; i++) {
+      r points[i].h = -dataArray[i * n]; // altura negativa!!
       ctx.beginPath();
-      ctx.fillRect(barras[i].x, barras[i].y, barras[i].w - 1, barras[i].h);
+      ctx.fillRecr points[i].xr points[i].yr points[i].w - 1r points[i].h);
     }
   }
 
-  Fotograma();
+  display();
 
 
   function findAudioSources() {
